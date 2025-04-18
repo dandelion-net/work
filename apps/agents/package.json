@@ -1,0 +1,38 @@
+{
+  "name": "@dandelion/agents",
+  "version": "1.0.0",
+  "main": ".mastra/output/index.mjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\"",
+    "dev": "mastra dev",
+    "build": "mastra build",
+    "start": "node .mastra/output/index.mjs",
+    "lint": "eslint . --max-warnings 0 && npm run typecheck",
+    "typecheck": "tsc --noEmit",
+    "lint:fix": "eslint . --max-warnings 22 --fix"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@ai-sdk/google": "^1.2.5",
+    "@ai-sdk/google-vertex": "^2.2.8",
+    "@mastra/core": "latest",
+    "@mastra/memory": "latest",
+    "@mastra/voice-google": "latest",
+    "mastra": "latest",
+    "sift": "^17.1.3",
+    "zod": "^3.24.2",
+    "zod-to-json-schema": "^3.24.5"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "^0.0.0",
+    "@repo/typescript-config": "^0.0.0",
+    "@types/node": "^22.14.0",
+    "@typescript-eslint/parser": "^8.29.1",
+    "eslint": "^8.57.0",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2"
+  }
+}

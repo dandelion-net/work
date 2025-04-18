@@ -1,0 +1,813 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "P2P Network Node API",
+    "description": "API for interacting with a decentralized P2P network node",
+    "version": "1.0.0",
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:{apiPort}",
+      "description": "Local development server",
+      "variables": {
+        "apiPort": {
+          "default": "6002",
+          "description": "The port number for the REST API"
+        }
+      }
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Health check endpoint",
+        "description": "Returns the current health status of the API",
+        "operationId": "getHealth",
+        "tags": ["System"],
+        "responses": {
+          "200": {
+            "description": "API is healthy",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["status", "timestamp"],
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": ["ok"],
+                      "description": "Health status"
+                    },
+                    "timestamp": {
+                      "type": "string",
+                      "format": "date-time",
+                      "description": "Current server time"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/peers": {
+      "get": {
+        "summary": "Get all known peers",
+        "description": "Returns a list of all peers known to this node",
+        "operationId": "getPeers",
+        "tags": ["Peers"],
+        "responses": {
+          "200": {
+            "description": "List of peers successfully retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PeerInfo"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/messages": {
+      "get": {
+        "summary": "Get messages within a timeframe",
+        "description": "Returns a list of messages received within the specified time range",
+        "operationId": "getMessages",
+        "tags": ["Messages"],
+        "parameters": [
+          {
+            "name": "start",
+            "in": "query",
+            "description": "Start timestamp in milliseconds (defaults to 24 hours ago)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "end",
+            "in": "query",
+            "description": "End timestamp in milliseconds (defaults to current time)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "tags",
+            "in": "query",
+            "description": "Filter messages by tags (comma-separated)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of messages successfully retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Message"
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete old messages",
+        "description": "Deletes messages older than the specified timestamp (admin only)",
+        "operationId": "deleteMessages",
+        "tags": ["Messages"],
+        "security": [
+          {
+            "adminKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "olderThan",
+            "in": "query",
+            "description": "Delete messages older than this timestamp in milliseconds (defaults to 7 days ago)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Messages successfully deleted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["success"],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Whether the deletion was successful"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Admin key not provided",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Invalid admin key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/broadcast": {
+      "post": {
+        "summary": "Broadcast a message",
+        "description": "Broadcasts a message to all peers in the network or to a specific recipient",
+        "operationId": "broadcastMessage",
+        "tags": ["Messages"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BroadcastRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Message successfully broadcast",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BroadcastResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/tags": {
+      "get": {
+        "summary": "Get base tags",
+        "description": "Returns the list of base tags for this node (admin only)",
+        "operationId": "getBaseTags",
+        "tags": ["Admin"],
+        "security": [
+          {
+            "adminKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Base tags successfully retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["tags"],
+                  "properties": {
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "List of base tags"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update base tags",
+        "description": "Updates the list of base tags for this node (admin only)",
+        "operationId": "updateBaseTags",
+        "tags": ["Admin"],
+        "security": [
+          {
+            "adminKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["tags"],
+                "properties": {
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "New list of base tags"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Base tags successfully updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["success", "tags"],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Whether the update was successful"
+                    },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Updated list of base tags"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          }
+        }
+      }
+    },
+    "/admin/blocked-tags": {
+      "get": {
+        "summary": "Get blocked tags",
+        "description": "Returns the list of blocked tags for this node (admin only)",
+        "operationId": "getBlockedTags",
+        "tags": ["Admin"],
+        "security": [
+          {
+            "adminKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Blocked tags successfully retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["tags"],
+                  "properties": {
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "List of blocked tags"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          }
+        }
+      },
+      "put": {
+        "summary": "Update blocked tags",
+        "description": "Updates the list of blocked tags for this node (admin only)",
+        "operationId": "updateBlockedTags",
+        "tags": ["Admin"],
+        "security": [
+          {
+            "adminKey": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["tags"],
+                "properties": {
+                  "tags": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "New list of blocked tags"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Blocked tags successfully updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["success", "tags"],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Whether the update was successful"
+                    },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "Updated list of blocked tags"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          }
+        }
+      }
+    },
+    "/admin/peers/{peerId}/block": {
+      "put": {
+        "summary": "Block/unblock a peer",
+        "description": "Updates the blocked status of a peer (admin only)",
+        "operationId": "updatePeerBlock",
+        "tags": ["Admin"],
+        "security": [
+          {
+            "adminKey": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "peerId",
+            "in": "path",
+            "description": "ID of the peer to block/unblock",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["blocked"],
+                "properties": {
+                  "blocked": {
+                    "type": "boolean",
+                    "description": "Whether to block or unblock the peer"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Peer block status successfully updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["success", "peerId", "blocked"],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "description": "Whether the update was successful"
+                    },
+                    "peerId": {
+                      "type": "string",
+                      "description": "ID of the affected peer"
+                    },
+                    "blocked": {
+                      "type": "boolean",
+                      "description": "New blocked status"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          }
+        }
+      }
+    },
+    "/admin/blocked": {
+      "get": {
+        "summary": "Get blocked peers",
+        "description": "Returns the list of blocked peer IDs (admin only)",
+        "operationId": "getBlockedPeers",
+        "tags": ["Admin"],
+        "security": [
+          {
+            "adminKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Blocked peers successfully retrieved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": ["blockedPeers"],
+                  "properties": {
+                    "blockedPeers": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "List of blocked peer IDs"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenError"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "adminKey": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Admin key for maintenance operations"
+      }
+    },
+    "responses": {
+      "UnauthorizedError": {
+        "description": "Admin key not provided",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "ForbiddenError": {
+        "description": "Invalid admin key",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "PeerInfo": {
+        "type": "object",
+        "required": ["id", "multiaddr", "lastSeen", "publicKey", "tags", "blocked"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the peer"
+          },
+          "multiaddr": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of multiaddresses where the peer can be reached"
+          },
+          "lastSeen": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Unix timestamp of when the peer was last seen"
+          },
+          "publicKey": {
+            "type": "string",
+            "description": "PEM-encoded public key of the peer"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of tags associated with the peer"
+          },
+          "blocked": {
+            "type": "boolean",
+            "description": "Whether this peer is blocked"
+          }
+        }
+      },
+      "Message": {
+        "type": "object",
+        "required": ["id", "type", "data", "sender", "timestamp", "signature", "validations", "tags"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier of the message"
+          },
+          "type": {
+            "type": "string",
+            "description": "Type of the message"
+          },
+          "data": {
+            "type": "object",
+            "description": "Message payload"
+          },
+          "sender": {
+            "type": "string",
+            "description": "ID of the sending peer"
+          },
+          "recipient": {
+            "type": "string",
+            "description": "Optional ID of the recipient peer"
+          },
+          "timestamp": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Unix timestamp when the message was created"
+          },
+          "signature": {
+            "type": "string",
+            "description": "Cryptographic signature of the message"
+          },
+          "relayPath": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of peer IDs that have relayed this message"
+          },
+          "validations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ValidationResult"
+            },
+            "description": "List of validation results from relaying peers"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of tags associated with the message"
+          }
+        }
+      },
+      "ValidationResult": {
+        "type": "object",
+        "required": ["relayId", "isValid", "timestamp"],
+        "properties": {
+          "relayId": {
+            "type": "string",
+            "description": "ID of the peer that performed the validation"
+          },
+          "isValid": {
+            "type": "boolean",
+            "description": "Whether the message signature is valid"
+          },
+          "timestamp": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Unix timestamp when the validation was performed"
+          }
+        }
+      },
+      "BroadcastRequest": {
+        "type": "object",
+        "required": ["type", "data"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Type of the message"
+          },
+          "data": {
+            "type": "object",
+            "description": "Arbitrary JSON payload"
+          },
+          "recipient": {
+            "type": "string",
+            "description": "Optional peer ID of the intended recipient"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Optional list of tags for the message"
+          }
+        }
+      },
+      "BroadcastResponse": {
+        "type": "object",
+        "required": ["success", "messageId"],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "description": "Whether the broadcast was successful"
+          },
+          "messageId": {
+            "type": "string",
+            "description": "Unique identifier of the broadcast message"
+          }
+        }
+      },
+      "Error": {
+        "type": "object",
+        "required": ["error"],
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Error message"
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "System",
+      "description": "System-related operations"
+    },
+    {
+      "name": "Peers",
+      "description": "Operations related to peer management"
+    },
+    {
+      "name": "Messages",
+      "description": "Operations related to message broadcasting and retrieval"
+    },
+    {
+      "name": "Admin",
+      "description": "Administrative operations"
+    }
+  ]
+}

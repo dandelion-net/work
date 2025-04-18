@@ -1,0 +1,450 @@
+{
+  "info": {
+    "name": "Weighted Voting System API",
+    "description": "API collection for testing the weighted voting system endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Create User (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{adminApiKey}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"id\": \"user1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/models/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "models", "users"]
+            }
+          }
+        },
+        {
+          "name": "Get Self (User)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{userApiKey}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/models/users/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "models", "users", "me"]
+            }
+          }
+        },
+        {
+          "name": "List Users (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{adminApiKey}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/models/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "models", "users"]
+            }
+          }
+        },
+        {
+          "name": "Get User (Admin/Self)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{userApiKey}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/models/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "models", "users", "{{userId}}"]
+            }
+          }
+        },
+        {
+          "name": "Get User Weights (Public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/models/users/{{userId}}/weights",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "models", "users", "{{userId}}", "weights"]
+            }
+          }
+        },
+        {
+          "name": "Update User (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{adminApiKey}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"id\": \"user1-updated\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/models/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "models", "users", "{{userId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete User (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{adminApiKey}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/models/users/{{userId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "models", "users", "{{userId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Topics",
+      "item": [
+        {
+          "name": "Create Topic (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{adminApiKey}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"id\": \"topic1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/models/topics",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "models", "topics"]
+            }
+          }
+        },
+        {
+          "name": "List Topics (Public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/models/topics",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "models", "topics"]
+            }
+          }
+        },
+        {
+          "name": "Get Topic (Public)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/models/topics/{{topicId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "models", "topics", "{{topicId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Topic (Admin)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{adminApiKey}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"id\": \"topic1-updated\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/models/topics/{{topicId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "models", "topics", "{{topicId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Topic (Admin)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{adminApiKey}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/models/topics/{{topicId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "models", "topics", "{{topicId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Vouches",
+      "item": [
+        {
+          "name": "Create Vouch (User)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{userApiKey}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"vouchedId\": \"{{vouchedUserId}}\",\n    \"topicId\": \"{{topicId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/models/vouches",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "models", "vouches"]
+            }
+          }
+        },
+        {
+          "name": "List Vouches (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{adminApiKey}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/models/vouches",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "models", "vouches"]
+            }
+          }
+        },
+        {
+          "name": "List User Vouches (User)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{userApiKey}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/models/vouches",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "models", "vouches"]
+            }
+          }
+        },
+        {
+          "name": "Get Vouch (Admin/User)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{userApiKey}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/models/vouches/{{vouchId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "models", "vouches", "{{vouchId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Vouch (User)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "x-api-key",
+                "value": "{{userApiKey}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/models/vouches/{{vouchId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "models", "vouches", "{{vouchId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Votes",
+      "item": [
+        {
+          "name": "Calculate Vote Results (Public)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"topicId\": \"{{topicId}}\",\n    \"votes\": [\n        {\n            \"userId\": \"{{userId1}}\",\n            \"vote\": true\n        },\n        {\n            \"userId\": \"{{userId2}}\",\n            \"vote\": false\n        }\n    ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/votes/calculate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "votes", "calculate"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "adminApiKey",
+      "value": "your-secure-admin-key-here",
+      "type": "string"
+    },
+    {
+      "key": "userApiKey",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId1",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId2",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "topicId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "vouchId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "vouchedUserId",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

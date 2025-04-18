@@ -1,0 +1,219 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type             String
+  provider         String
+  providerAccountId String
+  refresh_token    String? @db.Text
+  access_token     String? @db.Text
+  expires_at       Int?
+  token_type       String?
+  scope            String?
+  id_token         String? @db.Text
+  session_state    String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  role          UserRole  @default(USER)
+  onboarded     Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now()) @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  problems      Problem[]
+  solutions     Solution[]
+  comments      Comment[]
+  votes         Vote[]
+  weightedVotes WeightedVote[]
+  activityLogs  ActivityLog[]
+  moderationActions ModerationAction[]
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+model Problem {
+  id          String    @id @default(cuid())
+  title       String
+  description String    @db.Text
+  status      Status    @default(OPEN)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  authorId    String
+  author      User      @relation(fields: [authorId], references: [id])
+  solutions   Solution[]
+  votes       Vote[]
+  weightedVotes WeightedVote[]
+  comments    Comment[]
+  activityLogs ActivityLog[]
+  moderationStatus ModerationStatus @default(PENDING)
+  moderationActions ModerationAction[]
+}
+
+model Solution {
+  id          String   @id @default(cuid())
+  content     String   @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  problemId   String
+  authorId    String
+  problem     Problem  @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  author      User     @relation(fields: [authorId], references: [id])
+  votes       Vote[]
+  weightedVotes WeightedVote[]
+  comments    Comment[]
+  activityLogs ActivityLog[]
+  moderationStatus ModerationStatus @default(PENDING)
+  moderationActions ModerationAction[]
+}
+
+model Comment {
+  id          String   @id @default(cuid())
+  content     String   @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  authorId    String
+  problemId   String?
+  solutionId  String?
+  author      User     @relation(fields: [authorId], references: [id])
+  problem     Problem? @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  solution    Solution? @relation(fields: [solutionId], references: [id], onDelete: Cascade)
+  votes       Vote[]
+  weightedVotes WeightedVote[]
+  activityLogs ActivityLog[]
+  moderationStatus ModerationStatus @default(PENDING)
+  moderationActions ModerationAction[]
+}
+
+model Vote {
+  id          String   @id @default(cuid())
+  value       Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String
+  problemId   String?
+  solutionId  String?
+  commentId   String?
+  user        User     @relation(fields: [userId], references: [id])
+  problem     Problem? @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  solution    Solution? @relation(fields: [solutionId], references: [id], onDelete: Cascade)
+  comment     Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  activityLogs ActivityLog[]
+
+  @@unique([userId, problemId, solutionId, commentId])
+}
+
+model WeightedVote {
+  id          String   @id @default(cuid())
+  weight      Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String
+  problemId   String?
+  solutionId  String?
+  commentId   String?
+  user        User     @relation(fields: [userId], references: [id])
+  problem     Problem? @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  solution    Solution? @relation(fields: [solutionId], references: [id], onDelete: Cascade)
+  comment     Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  activityLogs ActivityLog[]
+}
+
+model Webhook {
+  id          String   @id @default(cuid())
+  url         String
+  secret      String
+  events      String[]
+  active      Boolean  @default(true)
+  publicKey   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ActivityLog {
+  id          String   @id @default(cuid())
+  action      String
+  entityType  String
+  entityId    String
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  problemId   String?
+  problem     Problem? @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  solutionId  String?
+  solution    Solution? @relation(fields: [solutionId], references: [id], onDelete: Cascade)
+  commentId   String?
+  comment     Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  voteId      String?
+  vote        Vote? @relation(fields: [voteId], references: [id], onDelete: Cascade)
+  weightedVoteId String?
+  weightedVote WeightedVote? @relation(fields: [weightedVoteId], references: [id], onDelete: Cascade)
+}
+
+model ModerationAction {
+  id          String   @id @default(cuid())
+  action      ModerationActionType
+  reason      String   @db.Text
+  createdAt   DateTime @default(now())
+  moderatorId String
+  moderator   User     @relation(fields: [moderatorId], references: [id])
+  problemId   String?
+  problem     Problem? @relation(fields: [problemId], references: [id], onDelete: Cascade)
+  solutionId  String?
+  solution    Solution? @relation(fields: [solutionId], references: [id], onDelete: Cascade)
+  commentId   String?
+  comment     Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+}
+
+enum Status {
+  OPEN
+  CLOSED
+  RESOLVED
+}
+
+enum ModerationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  FLAGGED
+}
+
+enum ModerationActionType {
+  APPROVE
+  REJECT
+  FLAG
+  UNFLAG
+}

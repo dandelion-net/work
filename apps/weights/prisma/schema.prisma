@@ -1,0 +1,33 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = env("DATABASE_PROVIDER")
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id
+  apiKey        String    @unique
+  vouchesGiven  Vouch[]   @relation("VoucherToVouch")
+  vouchesReceived Vouch[] @relation("VouchedToVouch")
+}
+
+model Topic {
+  id      String  @id
+  vouches Vouch[]
+}
+
+model Vouch {
+  id          String   @id @default(cuid())
+  voucher     User     @relation("VoucherToVouch", fields: [voucherId], references: [id])
+  voucherId   String
+  vouched     User     @relation("VouchedToVouch", fields: [vouchedId], references: [id])
+  vouchedId   String
+  topic       Topic    @relation(fields: [topicId], references: [id])
+  topicId     String
+  createdAt   DateTime @default(now())
+
+  @@unique([voucherId, vouchedId, topicId])
+}

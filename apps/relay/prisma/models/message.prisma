@@ -1,0 +1,13 @@
+model Message {
+  id          String   @id
+  type        String
+  data        String   // JSON stringified
+  sender      String
+  recipient   String?
+  timestamp   DateTime
+  signature   String
+  relayPath   String?  // JSON stringified array
+  validations String   // JSON stringified array
+  tags        String   @default("[]") // JSON stringified array of tags
+  createdAt   DateTime @default(now())
+}

@@ -1,0 +1,9 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "{{provider}}"
+  url      = env("DATABASE_URL")
+}
